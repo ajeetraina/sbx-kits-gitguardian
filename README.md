@@ -1,4 +1,4 @@
-# gitguardian
+# sbx kit for gitguardian
 
 A [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) **mixin** that adds
 [GitGuardian](https://www.gitguardian.com/)'s
