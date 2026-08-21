@@ -57,6 +57,6 @@ sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:<dige
 ## Currently published
 
 - `docker.io/ajeetraina777/gitguardian-kit:latest`
-- digest: `sha256:eb085e4af6a50b8b84f179dd9e1b53a1d23b200c65a44adacb77fcf916ef67cc`
+- digest: `sha256:0525bb06e82aca1e04ea88b666a8e21365f2cdbe9274c5ca641d254659b812fb`
 
 Re-run the publish step and update this digest whenever `spec.yaml` changes.

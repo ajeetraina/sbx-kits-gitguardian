@@ -61,7 +61,7 @@ This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
 ```console
 # From the published OCI artifact on Docker Hub (pin by digest - OCI refs
 # require a digest, tags are rejected):
-sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:eb085e4af6a50b8b84f179dd9e1b53a1d23b200c65a44adacb77fcf916ef67cc" .
+sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:0525bb06e82aca1e04ea88b666a8e21365f2cdbe9274c5ca641d254659b812fb" .
 
 # From this git repo:
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .
@@ -74,8 +74,12 @@ Then, inside the sandbox:
 
 ```console
 agent@claude-project:~/project$ ggshield api-status
-agent@claude-project:~/project$ ggshield secret scan path -r .
+agent@claude-project:~/project$ ggshield secret scan path -r .   # working tree
+agent@claude-project:~/project$ ggshield secret scan repo .      # full git history + working tree
 ```
+
+`scan path -r .` scans the current files; `scan repo .` also walks the commit
+history, so it catches secrets that were committed and later removed.
 
 ## Credentials
 
@@ -85,6 +89,14 @@ sandbox will not start without a binding.
 1. Create an API key in the GitGuardian dashboard
    (**API → Personal access tokens**, or a Service Account) with the `scan`
    scope.
+
+   > **Use a scan-only token.** This kit only needs `scan` (plus optionally
+   > `scan:create-incidents`). A broad Personal Access Token carrying
+   > `incidents:write`, `members:write`, `api_tokens:write`, `ip_allowlist:write`,
+   > etc. undercuts the whole point of the kit - if that key is ever misused, the
+   > blast radius is your entire workspace. Prefer a dedicated **Service Account**
+   > token scoped to `scan` only. The kit isolates the key from the sandbox; a
+   > least-privilege scope isolates the *damage* if the key leaks host-side.
 2. Make it available to `sbx`, e.g.:
 
    ```console

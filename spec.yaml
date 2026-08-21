@@ -53,7 +53,9 @@ agentInstructions:
 
     Use it to catch hardcoded secrets before they get committed:
 
-    - `ggshield secret scan path -r .` - recursively scan the workspace.
+    - `ggshield secret scan path -r .` - recursively scan the workspace files.
+    - `ggshield secret scan repo .` - scan full git history + working tree
+      (catches secrets that were committed and later removed).
     - `ggshield secret scan pre-commit` - scan staged changes (pre-commit hook).
     - `ggshield secret scan ci` - scan the current commit range in CI.
     - `ggshield api-status` / `ggshield quota` - verify auth and remaining quota.
