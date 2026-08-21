@@ -23,15 +23,25 @@ credentials:
     description: GitGuardian API key (from a Personal or Service Account, "scan" scope). Stored on the host; the sandbox only sees a placeholder and the proxy injects the real value on requests to api.gitguardian.com.
     required: true
     apiKey:
-      # ggshield reads GITGUARDIAN_API_KEY. The engine sets it to a sentinel
-      # inside the container; the proxy rewrites the Authorization header with
-      # the real key on outbound api.gitguardian.com calls. GitGuardian's API
-      # auth scheme is "Authorization: Token <key>", not Bearer.
+      # ggshield reads GITGUARDIAN_API_KEY. On the wire, the proxy rewrites the
+      # Authorization header with the real key on outbound api.gitguardian.com
+      # calls. GitGuardian's API auth scheme is "Authorization: Token <key>",
+      # not Bearer.
       name: GITGUARDIAN_API_KEY
       inject:
         - domain: api.gitguardian.com
           header: Authorization
           format: "Token %s"
+
+environment:
+  variables:
+    # gitguardian is a custom (non-registry) service, so sbx does NOT auto-export
+    # the apiKey sentinel into the container - it only sets
+    # SBX_CRED_GITGUARDIAN_MODE. ggshield refuses to run when GITGUARDIAN_API_KEY
+    # is unset, so we materialize the sentinel ourselves. The value is a
+    # placeholder; the proxy swaps in the real key on outbound
+    # api.gitguardian.com requests, so the real token never enters the sandbox.
+    GITGUARDIAN_API_KEY: "proxy-managed"
 
 agentInstructions:
   content: |
