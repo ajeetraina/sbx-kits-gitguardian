@@ -24,8 +24,9 @@ This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
 (`claude` shown here) and add the kit:
 
 ```console
-# From the published OCI artifact (if contributed upstream):
-sbx run claude --kit "docker.io/sbx/gitguardian-kit:latest" .
+# From the published OCI artifact on Docker Hub (pin by digest — OCI refs
+# require a digest, tags are rejected):
+sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:ee59d27a3d985f1aae33c714db99b434f20fca52f7e70bf9b3d563f3ee4ed32b" .
 
 # From this git repo:
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .
