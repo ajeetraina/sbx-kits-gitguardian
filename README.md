@@ -88,10 +88,19 @@ sandbox will not start without a binding.
 2. Make it available to `sbx`, e.g.:
 
    ```console
-   sbx secret set gitguardian <your-api-key>
+   # Global (available to all sandboxes) - paste the PAT at the prompt:
+   sbx secret set gitguardian
+
+   # Scope the PAT to a single sandbox (e.g. one named "jfrog"), non-interactive:
+   echo "gg_pat_t9XXXX" | sbx secret set gitguardian --sandbox jfrog
    ```
 
-   or point a binding at an env var / file in `~/.config/sbx/credentials.yaml`:
+   The service name is always `gitguardian` (it must match the credential's
+   `service` in `spec.yaml`); the value is your GitGuardian PAT (`gg_pat_...`),
+   entered at the prompt or piped in via stdin.
+
+   Alternatively, point a binding at an env var / file in
+   `~/.config/sbx/credentials.yaml`:
 
    ```yaml
    bindings:
