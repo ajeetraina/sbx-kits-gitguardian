@@ -12,31 +12,31 @@
   <text x="44" y="470" fill="#1a73e8" font-size="17" font-weight="bold">Host machine</text>
 
   <!-- Workspace directories -->
-  <rect x="44" y="96" width="150" height="58" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
-  <text x="119" y="122" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Workspace</text>
-  <text x="119" y="140" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">directories</text>
+  <rect x="44" y="110" width="150" height="58" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="119" y="136" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Workspace</text>
+  <text x="119" y="154" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">directories</text>
 
   <!-- microVM-based sandbox -->
-  <rect x="222" y="72" width="250" height="210" rx="14" fill="#ffffff" stroke="#c6d4ef" stroke-width="1.5"/>
+  <rect x="222" y="72" width="250" height="224" rx="14" fill="#ffffff" stroke="#c6d4ef" stroke-width="1.5"/>
   <text x="242" y="96" fill="#3c4043" font-size="14">microVM-based sandbox</text>
 
   <!-- container (dotted) -->
-  <rect x="240" y="108" width="214" height="120" rx="8" fill="#f4f8ff" stroke="#7aa0e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <rect x="240" y="108" width="214" height="132" rx="8" fill="#f4f8ff" stroke="#7aa0e0" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="440" y="124" fill="#5f6368" font-size="11" text-anchor="end">container</text>
 
   <!-- Agent/Claude -->
-  <rect x="256" y="128" width="180" height="40" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
-  <text x="346" y="153" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Agent / Claude</text>
+  <rect x="256" y="126" width="180" height="40" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="346" y="151" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Agent / Claude</text>
 
   <!-- ggshield mixin -->
-  <rect x="256" y="176" width="180" height="46" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
-  <text x="346" y="196" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">GitGuardian (ggshield)</text>
-  <text x="346" y="213" fill="#5f6368" font-size="12" text-anchor="middle">Kind: mixin</text>
+  <rect x="256" y="182" width="180" height="48" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="346" y="202" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">GitGuardian (ggshield)</text>
+  <text x="346" y="220" fill="#5f6368" font-size="12" text-anchor="middle">Kind: mixin</text>
 
   <!-- Local scan cache -->
-  <rect x="238" y="238" width="128" height="38" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
-  <text x="302" y="256" fill="#202124" font-size="12" font-weight="bold" text-anchor="middle">ggshield cache</text>
-  <text x="302" y="270" fill="#5f6368" font-size="11" text-anchor="middle">local</text>
+  <rect x="238" y="250" width="128" height="38" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="302" y="268" fill="#202124" font-size="12" font-weight="bold" text-anchor="middle">ggshield cache</text>
+  <text x="302" y="282" fill="#5f6368" font-size="11" text-anchor="middle">local</text>
 
   <!-- Secrets box -->
   <rect x="500" y="104" width="108" height="62" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
@@ -50,30 +50,30 @@
   <text x="680" y="147" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">policies</text>
 
   <!-- sbx proxy / Network Policy -->
-  <rect x="524" y="250" width="184" height="70" rx="10" fill="#ffffff" stroke="#4285f4" stroke-width="1.8"/>
-  <text x="616" y="278" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">sbx proxy</text>
-  <text x="616" y="297" fill="#5f6368" font-size="11.5" text-anchor="middle">allowlist + key injection</text>
+  <rect x="524" y="252" width="184" height="70" rx="10" fill="#ffffff" stroke="#4285f4" stroke-width="1.8"/>
+  <text x="616" y="280" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">sbx proxy</text>
+  <text x="616" y="299" fill="#5f6368" font-size="11.5" text-anchor="middle">allowlist + key injection</text>
 
   <!-- External system: GitGuardian API -->
-  <rect x="770" y="248" width="200" height="82" rx="10" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
-  <text x="870" y="284" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">api.gitguardian.com</text>
-  <text x="870" y="304" fill="#5f6368" font-size="12" text-anchor="middle">secret detection API</text>
+  <rect x="770" y="250" width="200" height="82" rx="10" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="870" y="286" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">api.gitguardian.com</text>
+  <text x="870" y="306" fill="#5f6368" font-size="12" text-anchor="middle">secret detection API</text>
 
-  <!-- Arrows -->
+  <!-- Arrows (all end with a clear gap before the target box) -->
   <!-- Workspace -> Agent -->
-  <line x1="194" y1="130" x2="252" y2="146" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="194" y1="140" x2="250" y2="150" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- Agent -> ggshield -->
-  <line x1="346" y1="168" x2="346" y2="174" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="346" y1="166" x2="346" y2="177" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- ggshield -> cache -->
-  <line x1="320" y1="222" x2="308" y2="236" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="332" y1="230" x2="316" y2="245" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- Secrets -> proxy -->
-  <line x1="560" y1="166" x2="590" y2="248" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="560" y1="166" x2="590" y2="247" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- Network policies -> proxy -->
-  <line x1="674" y1="166" x2="648" y2="248" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="674" y1="166" x2="650" y2="247" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- ggshield -> proxy (scan request) -->
-  <line x1="436" y1="206" x2="548" y2="248" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="436" y1="206" x2="548" y2="247" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
   <!-- proxy -> GitGuardian API (solid: traffic DOES cross, with real key injected) -->
-  <line x1="708" y1="286" x2="766" y2="286" stroke="#1a73e8" stroke-width="2.4" marker-end="url(#arrow)"/>
+  <line x1="708" y1="288" x2="764" y2="288" stroke="#1a73e8" stroke-width="2.4" marker-end="url(#arrow)"/>
 
   <!-- Annotation -->
   <text x="762" y="392" fill="#1a73e8" font-size="15" font-weight="bold">The real API key stays on the host</text>
