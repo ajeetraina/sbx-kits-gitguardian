@@ -1,0 +1,95 @@
+schemaVersion: "2"
+kind: mixin
+name: gitguardian
+displayName: GitGuardian (ggshield)
+description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com, so an agent can scan its workspace for hardcoded secrets before committing — the real key never enters the sandbox.
+
+permissions:
+  network:
+    allow:
+      # Install-time: pinned release tarball download. github.com 302-redirects
+      # to the githubusercontent object stores for release binaries; both are
+      # listed since the redirect target isn't guaranteed to be the same host.
+      - github.com
+      - objects.githubusercontent.com
+      - release-assets.githubusercontent.com
+      # Runtime: ggshield's scan/verify calls hit the GitGuardian public API.
+      # EU workspace / self-hosted instances use a different host — add your
+      # GITGUARDIAN_INSTANCE domain here and to the credential inject block.
+      - api.gitguardian.com
+
+credentials:
+  - service: gitguardian
+    description: GitGuardian API key (from a Personal or Service Account, "scan" scope). Stored on the host; the sandbox only sees a placeholder and the proxy injects the real value on requests to api.gitguardian.com.
+    required: true
+    apiKey:
+      # ggshield reads GITGUARDIAN_API_KEY. The engine sets it to a sentinel
+      # inside the container; the proxy rewrites the Authorization header with
+      # the real key on outbound api.gitguardian.com calls. GitGuardian's API
+      # auth scheme is "Authorization: Token <key>", not Bearer.
+      name: GITGUARDIAN_API_KEY
+      inject:
+        - domain: api.gitguardian.com
+          header: Authorization
+          format: "Token %s"
+
+agentInstructions:
+  content: |
+    ## GitGuardian secret scanning (ggshield)
+
+    `ggshield` is installed and authenticated against `api.gitguardian.com`
+    through the sandbox proxy — `GITGUARDIAN_API_KEY` is a proxy-managed
+    placeholder inside the container, never the real key.
+
+    Use it to catch hardcoded secrets before they get committed:
+
+    - `ggshield secret scan path -r .` — recursively scan the workspace.
+    - `ggshield secret scan pre-commit` — scan staged changes (pre-commit hook).
+    - `ggshield secret scan ci` — scan the current commit range in CI.
+    - `ggshield api-status` / `ggshield quota` — verify auth and remaining quota.
+
+    Run a scan after generating or editing code that might contain credentials,
+    and before any `git commit`. If a real secret is found, remove it and rotate
+    it — do not commit it. For the EU workspace or a self-hosted instance, the
+    operator must set `GITGUARDIAN_INSTANCE` and add that host to the kit's
+    network allowlist and credential inject block.
+
+setup:
+  install:
+    # Install ggshield from a pinned, digest-verified GitHub release (same
+    # pattern as the trivy/glab kits: no curl|sh, version AND SHA256 pinned in
+    # git). The release ships a self-contained PyInstaller bundle (a binary
+    # plus an _internal/ dir), so we extract the whole tree to /opt and symlink
+    # the launcher onto PATH. To bump: change GGSHIELD_VERSION plus the per-arch
+    # SHA256 below (sha256sum of each release tarball).
+    - command: |
+        set -euo pipefail
+        GGSHIELD_VERSION=1.53.0
+        ARCH=$(dpkg --print-architecture)
+        case "$ARCH" in
+          amd64)
+            SLUG="x86_64-unknown-linux-gnu"
+            SHA256="234d1a62ea7b769695c7e5aee8f29e9d0069cd09b4e5b67493d3b529abb44e4a"
+            ;;
+          arm64)
+            SLUG="aarch64-unknown-linux-gnu"
+            SHA256="097616513fe7a4f25831a464b8968b124af32d274e2ce006e388800605696b20"
+            ;;
+          *)
+            echo "unsupported sandbox arch: $ARCH (expected amd64 or arm64)" >&2
+            exit 1
+            ;;
+        esac
+        DIRNAME="ggshield-${GGSHIELD_VERSION}-${SLUG}"
+        TARBALL="${DIRNAME}.tar.gz"
+        URL="https://github.com/GitGuardian/ggshield/releases/download/v${GGSHIELD_VERSION}/${TARBALL}"
+        curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/ggshield.tgz "$URL"
+        echo "${SHA256}  /tmp/ggshield.tgz" | sha256sum -c -
+        rm -rf /opt/ggshield
+        tar -C /opt -xzf /tmp/ggshield.tgz
+        mv "/opt/${DIRNAME}" /opt/ggshield
+        ln -sf /opt/ggshield/ggshield /usr/local/bin/ggshield
+        rm -f /tmp/ggshield.tgz
+        ggshield --version
+      user: "0"
+      description: "Install ggshield v1.53.0, version+digest pinned"
