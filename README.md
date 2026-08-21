@@ -20,30 +20,29 @@ outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Dev(["👤 Developer"]) -->|"sbx run claude --kit gitguardian ."| Sandbox
-
-    subgraph Host["🖥️ Host machine"]
-        Secret["🔑 sbx secret store /<br/>credentials.yaml<br/>(real GITGUARDIAN_API_KEY)"]
-    end
-
-    subgraph Sandbox["📦 Sandbox microVM (isolated)"]
-        Agent["🤖 AI agent<br/>claude · codex · gemini · …"]
-        GG["🛡️ ggshield CLI<br/>GITGUARDIAN_API_KEY = placeholder"]
-        WS["📁 workspace<br/>(your code)"]
-        Agent -->|"ggshield secret scan path -r ."| GG
-        GG -->|"reads files"| WS
-    end
-
-    subgraph Proxy["🔒 sbx proxy"]
-        Pol["network allowlist<br/>+ credential injection"]
-    end
-
-    GG -->|"HTTPS · Authorization: Token &lt;placeholder&gt;"| Proxy
-    Secret -.->|"injects real key on the wire"| Proxy
-    Proxy -->|"Authorization: Token &lt;real key&gt;"| API["☁️ api.gitguardian.com"]
-    Proxy -. "blocks any non-allowlisted host" .-> Denied(["🚫 denied egress"])
+```
+   HOST                          SANDBOX microVM (isolated)
+ ┌───────────────────────┐     ┌────────────────────────────────┐
+ │ sbx secret store /    │     │ AI agent (claude, codex, …)    │
+ │ credentials.yaml      │     │        │                       │
+ │                       │     │        │ ggshield secret scan  │
+ │ real GITGUARDIAN_     │     │        ▼                       │
+ │ API_KEY (gg_pat_…)    │     │ ggshield CLI                   │
+ │                       │     │   GITGUARDIAN_API_KEY =        │
+ └───────────┬───────────┘     │        proxy-managed  ◄──── placeholder only
+             │                 └───────────────┬────────────────┘
+             │ injects real key                │ HTTPS
+             │ on the wire                     │ Authorization: Token <placeholder>
+             │                                 ▼
+             │              ┌──────────────────────────────────────┐
+             └────────────► │ sbx proxy                            │
+                            │  • enforces 4-host network allowlist │
+                            │  • swaps placeholder → real key      │
+                            └───────────────┬──────────────────────┘
+                                            │ Authorization: Token <real key>
+                                            ▼
+                              api.gitguardian.com   ✓ allowed
+                              any other host        ✗ denied (default deny)
 ```
 
 **The key isolation property:** `ggshield` inside the microVM only ever holds a
