@@ -61,7 +61,7 @@ This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
 ```console
 # From the published OCI artifact on Docker Hub (pin by digest - OCI refs
 # require a digest, tags are rejected):
-sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:ee59d27a3d985f1aae33c714db99b434f20fca52f7e70bf9b3d563f3ee4ed32b" .
+sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:eb085e4af6a50b8b84f179dd9e1b53a1d23b200c65a44adacb77fcf916ef67cc" .
 
 # From this git repo:
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .
@@ -111,9 +111,11 @@ sandbox will not start without a binding.
          - api.gitguardian.com
    ```
 
-The engine sets `GITGUARDIAN_API_KEY` to a placeholder inside the container;
-the proxy rewrites the `Authorization: Token <key>` header with the real value
-only on requests to `api.gitguardian.com`.
+Inside the container `GITGUARDIAN_API_KEY` is set to the placeholder
+`proxy-managed` (the kit exports it via `environment.variables`, because
+`gitguardian` is a custom service that sbx does not auto-materialize). The proxy
+rewrites the `Authorization: Token <key>` header with the real value only on
+requests to `api.gitguardian.com`, so the real token never enters the sandbox.
 
 ## How auth and egress work
 
