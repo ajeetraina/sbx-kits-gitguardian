@@ -2,7 +2,7 @@ schemaVersion: "2"
 kind: mixin
 name: gitguardian
 displayName: GitGuardian (ggshield)
-description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com, so an agent can scan its workspace for hardcoded secrets before committing — the real key never enters the sandbox.
+description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com, so an agent can scan its workspace for hardcoded secrets before committing - the real key never enters the sandbox.
 
 permissions:
   network:
@@ -14,7 +14,7 @@ permissions:
       - objects.githubusercontent.com
       - release-assets.githubusercontent.com
       # Runtime: ggshield's scan/verify calls hit the GitGuardian public API.
-      # EU workspace / self-hosted instances use a different host — add your
+      # EU workspace / self-hosted instances use a different host - add your
       # GITGUARDIAN_INSTANCE domain here and to the credential inject block.
       - api.gitguardian.com
 
@@ -38,19 +38,19 @@ agentInstructions:
     ## GitGuardian secret scanning (ggshield)
 
     `ggshield` is installed and authenticated against `api.gitguardian.com`
-    through the sandbox proxy — `GITGUARDIAN_API_KEY` is a proxy-managed
+    through the sandbox proxy - `GITGUARDIAN_API_KEY` is a proxy-managed
     placeholder inside the container, never the real key.
 
     Use it to catch hardcoded secrets before they get committed:
 
-    - `ggshield secret scan path -r .` — recursively scan the workspace.
-    - `ggshield secret scan pre-commit` — scan staged changes (pre-commit hook).
-    - `ggshield secret scan ci` — scan the current commit range in CI.
-    - `ggshield api-status` / `ggshield quota` — verify auth and remaining quota.
+    - `ggshield secret scan path -r .` - recursively scan the workspace.
+    - `ggshield secret scan pre-commit` - scan staged changes (pre-commit hook).
+    - `ggshield secret scan ci` - scan the current commit range in CI.
+    - `ggshield api-status` / `ggshield quota` - verify auth and remaining quota.
 
     Run a scan after generating or editing code that might contain credentials,
     and before any `git commit`. If a real secret is found, remove it and rotate
-    it — do not commit it. For the EU workspace or a self-hosted instance, the
+    it - do not commit it. For the EU workspace or a self-hosted instance, the
     operator must set `GITGUARDIAN_INSTANCE` and add that host to the kit's
     network allowlist and credential inject block.
 

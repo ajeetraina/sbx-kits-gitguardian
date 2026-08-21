@@ -5,18 +5,18 @@ A [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) **mixin** that adds
 [`ggshield`](https://github.com/GitGuardian/ggshield) secret scanner to any
 agent sandbox. It installs `ggshield` from a pinned, digest-verified GitHub
 release at sandbox creation and wires up proxy-injected API-key auth for
-`api.gitguardian.com` — so the agent can scan its workspace for hardcoded
+`api.gitguardian.com` - so the agent can scan its workspace for hardcoded
 secrets, but the real API key never enters the sandbox.
 
 ## Why this kit exists
 
 AI coding agents generate and paste code fast, and hardcoded credentials slip
-in — API keys, tokens, private keys in fixtures, `.env` files echoed into a
+in - API keys, tokens, private keys in fixtures, `.env` files echoed into a
 commit. `ggshield` catches them before `git commit`. Running it inside a
 sandbox means the scanner (and the code it scans) executes in an isolated
 microVM: your `~/.aws` / `~/.ssh` / `~/.docker/config.json` are not mounted, and
 the GitGuardian API key is held on the host and injected by the proxy only on
-outbound calls to `api.gitguardian.com` — the container sees a placeholder.
+outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
 ## Architecture
 
@@ -50,7 +50,7 @@ flowchart LR
 placeholder value for `GITGUARDIAN_API_KEY`. When it calls the GitGuardian API,
 the sbx proxy rewrites the `Authorization: Token …` header with the real key
 (sourced from the host) on the wire, and denies any egress to a host outside the
-kit's four-entry allowlist. The real key never enters the sandbox — not in the
+kit's four-entry allowlist. The real key never enters the sandbox - not in the
 environment, shell history, or `ps` output.
 
 ## Usage
@@ -59,7 +59,7 @@ This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
 (`claude` shown here) and add the kit:
 
 ```console
-# From the published OCI artifact on Docker Hub (pin by digest — OCI refs
+# From the published OCI artifact on Docker Hub (pin by digest - OCI refs
 # require a digest, tags are rejected):
 sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:ee59d27a3d985f1aae33c714db99b434f20fca52f7e70bf9b3d563f3ee4ed32b" .
 
@@ -79,7 +79,7 @@ agent@claude-project:~/project$ ggshield secret scan path -r .
 
 ## Credentials
 
-The kit declares one credential, `gitguardian`, and marks it `required` — the
+The kit declares one credential, `gitguardian`, and marks it `required` - the
 sandbox will not start without a binding.
 
 1. Create an API key in the GitGuardian dashboard
@@ -125,7 +125,7 @@ The network allowlist is intentionally minimal:
 `ggshield` defaults to `api.gitguardian.com`. For the EU workspace or a
 self-hosted GitGuardian, set `GITGUARDIAN_INSTANCE` for the agent and add that
 host to **both** `permissions.network.allow` and the credential's
-`apiKey.inject[].domain` in `spec.yaml` (fork the kit) — the proxy only injects
+`apiKey.inject[].domain` in `spec.yaml` (fork the kit) - the proxy only injects
 into domains the kit declares.
 
 ## Version pinning

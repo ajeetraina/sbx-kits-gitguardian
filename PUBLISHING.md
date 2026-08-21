@@ -1,6 +1,6 @@
 # Publishing the gitguardian kit
 
-This kit is a `kind: mixin`, so it does **not** build a container image — it
+This kit is a `kind: mixin`, so it does **not** build a container image - it
 layers onto whatever base agent image `--kit` is applied to. "Publishing" here
 means pushing the **kit artifact** (the `spec.yaml` plus any `files/`) to an OCI
 registry with `sbx kit push`. For a `schemaVersion: "2"` kit this produces a
@@ -11,7 +11,7 @@ layers.
 ## Prerequisites
 
 - `sbx` on `PATH`.
-- `docker login` completed for the target registry — `sbx kit push` uses the
+- `docker login` completed for the target registry - `sbx kit push` uses the
   Docker credential store. For Docker Hub:
 
   ```console
@@ -41,7 +41,7 @@ container image (not used by a mixin).
 ## Pin by digest
 
 `sbx kit push` accepts a `:tag` for convenience, but **consumers must reference
-a kit by digest** — the spec's strict-pinning rule rejects OCI tags (including
+a kit by digest** - the spec's strict-pinning rule rejects OCI tags (including
 `:latest`). After pushing, resolve the digest:
 
 ```console

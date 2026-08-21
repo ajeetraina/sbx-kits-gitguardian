@@ -8,7 +8,7 @@
 #
 # Requires: `sbx` on PATH and `docker login` already done (sbx kit push uses
 # the Docker credential store). The kit is a kind: mixin, so this pushes the
-# OCI *artifact* (spec.yaml + files) — no container image is built.
+# OCI *artifact* (spec.yaml + files) - no container image is built.
 set -euo pipefail
 
 NAMESPACE="${1:-ajeetraina777}"
