@@ -20,30 +20,7 @@ outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
 ## Architecture
 
-```
-   HOST                          SANDBOX microVM (isolated)
- ┌───────────────────────┐     ┌────────────────────────────────┐
- │ sbx secret store /    │     │ AI agent (claude, codex, …)    │
- │ credentials.yaml      │     │        │                       │
- │                       │     │        │ ggshield secret scan  │
- │ real GITGUARDIAN_     │     │        ▼                       │
- │ API_KEY (gg_pat_…)    │     │ ggshield CLI                   │
- │                       │     │   GITGUARDIAN_API_KEY =        │
- └───────────┬───────────┘     │        proxy-managed  ◄──── placeholder only
-             │                 └───────────────┬────────────────┘
-             │ injects real key                │ HTTPS
-             │ on the wire                     │ Authorization: Token <placeholder>
-             │                                 ▼
-             │              ┌──────────────────────────────────────┐
-             └────────────► │ sbx proxy                            │
-                            │  • enforces 4-host network allowlist │
-                            │  • swaps placeholder → real key      │
-                            └───────────────┬──────────────────────┘
-                                            │ Authorization: Token <real key>
-                                            ▼
-                              api.gitguardian.com   ✓ allowed
-                              any other host        ✗ denied (default deny)
-```
+![GitGuardian kit architecture](docs/architecture.png)
 
 **The key isolation property:** `ggshield` inside the microVM only ever holds a
 placeholder value for `GITGUARDIAN_API_KEY`. When it calls the GitGuardian API,

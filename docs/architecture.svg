@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="520" viewBox="0 0 1060 520" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#1a73e8"/>
+    </marker>
+  </defs>
+
+  <rect width="1060" height="520" fill="#ffffff"/>
+
+  <!-- Host machine outer frame -->
+  <rect x="18" y="24" width="700" height="472" rx="18" fill="#eaf1fb" stroke="#4285f4" stroke-width="2"/>
+  <text x="44" y="470" fill="#1a73e8" font-size="17" font-weight="bold">Host machine</text>
+
+  <!-- Workspace directories -->
+  <rect x="44" y="96" width="150" height="58" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="119" y="122" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Workspace</text>
+  <text x="119" y="140" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">directories</text>
+
+  <!-- microVM-based sandbox -->
+  <rect x="222" y="72" width="250" height="210" rx="14" fill="#ffffff" stroke="#c6d4ef" stroke-width="1.5"/>
+  <text x="242" y="96" fill="#3c4043" font-size="14">microVM-based sandbox</text>
+
+  <!-- container (dotted) -->
+  <rect x="240" y="108" width="214" height="120" rx="8" fill="#f4f8ff" stroke="#7aa0e0" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="440" y="124" fill="#5f6368" font-size="11" text-anchor="end">container</text>
+
+  <!-- Agent/Claude -->
+  <rect x="256" y="128" width="180" height="40" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="346" y="153" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">Agent / Claude</text>
+
+  <!-- ggshield mixin -->
+  <rect x="256" y="176" width="180" height="46" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="346" y="196" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">GitGuardian (ggshield)</text>
+  <text x="346" y="213" fill="#5f6368" font-size="12" text-anchor="middle">Kind: mixin</text>
+
+  <!-- Local scan cache -->
+  <rect x="238" y="238" width="128" height="38" rx="7" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="302" y="256" fill="#202124" font-size="12" font-weight="bold" text-anchor="middle">ggshield cache</text>
+  <text x="302" y="270" fill="#5f6368" font-size="11" text-anchor="middle">local</text>
+
+  <!-- Secrets box -->
+  <rect x="512" y="96" width="120" height="58" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="572" y="118" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">Secrets</text>
+  <text x="572" y="136" fill="#5f6368" font-size="11" text-anchor="middle">GITGUARDIAN</text>
+  <text x="572" y="149" fill="#5f6368" font-size="11" text-anchor="middle">_API_KEY</text>
+
+  <!-- Network policies box -->
+  <rect x="512" y="176" width="120" height="46" rx="8" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="572" y="198" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">Network</text>
+  <text x="572" y="214" fill="#202124" font-size="13" font-weight="bold" text-anchor="middle">policies</text>
+
+  <!-- sbx proxy / Network Policy -->
+  <rect x="500" y="256" width="180" height="70" rx="10" fill="#ffffff" stroke="#4285f4" stroke-width="1.8"/>
+  <text x="590" y="284" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">sbx proxy</text>
+  <text x="590" y="303" fill="#5f6368" font-size="11.5" text-anchor="middle">allowlist + key injection</text>
+
+  <!-- External system: GitGuardian API -->
+  <rect x="770" y="248" width="200" height="82" rx="10" fill="#ffffff" stroke="#9db8e6" stroke-width="1.5"/>
+  <text x="870" y="284" fill="#202124" font-size="14" font-weight="bold" text-anchor="middle">api.gitguardian.com</text>
+  <text x="870" y="304" fill="#5f6368" font-size="12" text-anchor="middle">secret detection API</text>
+
+  <!-- Arrows -->
+  <!-- Workspace -> Agent -->
+  <line x1="194" y1="130" x2="252" y2="146" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Agent -> ggshield -->
+  <line x1="346" y1="168" x2="346" y2="174" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- ggshield -> cache -->
+  <line x1="320" y1="222" x2="308" y2="236" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Secrets -> proxy -->
+  <line x1="572" y1="154" x2="580" y2="254" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Network policies -> proxy -->
+  <line x1="572" y1="222" x2="588" y2="254" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- ggshield -> proxy (scan request) -->
+  <line x1="436" y1="199" x2="498" y2="270" stroke="#1a73e8" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- proxy -> GitGuardian API (solid: traffic DOES cross, with real key injected) -->
+  <line x1="680" y1="290" x2="766" y2="290" stroke="#1a73e8" stroke-width="2.4" marker-end="url(#arrow)"/>
+
+  <!-- Annotation -->
+  <text x="762" y="392" fill="#1a73e8" font-size="15" font-weight="bold">The real API key stays on the host</text>
+  <text x="762" y="413" fill="#3c4043" font-size="13">The sandbox sees only a placeholder;</text>
+  <text x="762" y="431" fill="#3c4043" font-size="13">the proxy injects the real key on the wire.</text>
+  <text x="762" y="455" fill="#3c4043" font-size="13">Every other host is denied by default.</text>
+</svg>
