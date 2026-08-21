@@ -18,6 +18,41 @@ microVM: your `~/.aws` / `~/.ssh` / `~/.docker/config.json` are not mounted, and
 the GitGuardian API key is held on the host and injected by the proxy only on
 outbound calls to `api.gitguardian.com` — the container sees a placeholder.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Dev(["👤 Developer"]) -->|"sbx run claude --kit gitguardian ."| Sandbox
+
+    subgraph Host["🖥️ Host machine"]
+        Secret["🔑 sbx secret store /<br/>credentials.yaml<br/>(real GITGUARDIAN_API_KEY)"]
+    end
+
+    subgraph Sandbox["📦 Sandbox microVM (isolated)"]
+        Agent["🤖 AI agent<br/>claude · codex · gemini · …"]
+        GG["🛡️ ggshield CLI<br/>GITGUARDIAN_API_KEY = placeholder"]
+        WS["📁 workspace<br/>(your code)"]
+        Agent -->|"ggshield secret scan path -r ."| GG
+        GG -->|"reads files"| WS
+    end
+
+    subgraph Proxy["🔒 sbx proxy"]
+        Pol["network allowlist<br/>+ credential injection"]
+    end
+
+    GG -->|"HTTPS · Authorization: Token &lt;placeholder&gt;"| Proxy
+    Secret -.->|"injects real key on the wire"| Proxy
+    Proxy -->|"Authorization: Token &lt;real key&gt;"| API["☁️ api.gitguardian.com"]
+    Proxy -. "blocks any non-allowlisted host" .-> Denied(["🚫 denied egress"])
+```
+
+**The key isolation property:** `ggshield` inside the microVM only ever holds a
+placeholder value for `GITGUARDIAN_API_KEY`. When it calls the GitGuardian API,
+the sbx proxy rewrites the `Authorization: Token …` header with the real key
+(sourced from the host) on the wire, and denies any egress to a host outside the
+kit's four-entry allowlist. The real key never enters the sandbox — not in the
+environment, shell history, or `ps` output.
+
 ## Usage
 
 This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
