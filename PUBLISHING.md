@@ -86,14 +86,36 @@ the artifact came out wrong.
 
 - `docker.io/ajeetraina777/gitguardian-kit`
 - digest: `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
-  (also tagged `:v039`; pushed from `sbx` v0.39.0 and verified to resolve)
+- tags: `:latest`, `:v039` - both point at the digest above
 
-> **Note:** the `:latest` tag currently points at
-> `sha256:f37d16488cef8b25aea280fe62e2f360b6c09ac0a83677c0b46b88b567b6acd3`,
-> which was pushed from a dev build and **cannot be resolved** by released
-> `sbx`. Re-push `:latest` from a release build to fix the tag. Until then,
-> ignore `:latest` and pin the digest above.
+Pushed from `sbx` v0.39.0 and confirmed to resolve (`✓ configuration resolved`).
 
 Re-run the publish step and update this digest whenever `spec.yaml` changes.
 Every push rewrites the `org.opencontainers.image.created` annotation, so the
 digest changes on each push even when `spec.yaml` is untouched.
+
+## Retag without re-publishing
+
+Because each push mints a new digest, moving a tag onto an *existing*, already
+verified artifact is safer than re-pushing: PUT the same manifest bytes under
+the new tag. The digest is unchanged, so nothing pinned in the docs has to move
+and no blob upload is needed (the config and layer are already in the repo).
+
+```console
+REPO=ajeetraina777/gitguardian-kit
+DIG=sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0
+TOK=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull,push" \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])')
+
+curl -sf -H "Authorization: Bearer $TOK" \
+  -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+  "https://registry-1.docker.io/v2/${REPO}/manifests/${DIG}" -o manifest.json
+
+# confirm the bytes hash to the digest you expect before pushing the tag
+sha256sum manifest.json
+
+curl -s -X PUT -H "Authorization: Bearer $TOK" \
+  -H "Content-Type: application/vnd.oci.image.manifest.v1+json" \
+  --data-binary @manifest.json \
+  "https://registry-1.docker.io/v2/${REPO}/manifests/latest"
+```
