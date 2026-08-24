@@ -10,7 +10,9 @@ layers.
 
 ## Prerequisites
 
-- `sbx` on `PATH`.
+- **A release-channel `sbx` on `PATH` - not a development build.** See
+  [Publish from a release build](#publish-from-a-release-build) below; a dev
+  build silently produces an artifact that no released `sbx` can resolve.
 - `docker login` completed for the target registry - `sbx kit push` uses the
   Docker credential store. For Docker Hub:
 
@@ -54,9 +56,44 @@ Then consume it:
 sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:<digest>" .
 ```
 
+## Publish from a release build
+
+`sbx kit push` must be run from a **release** build of `sbx`. A development
+build writes the kit layer as `application/vnd.oci.empty.v1+json` (a 2-byte
+empty descriptor) where a release build writes
+`application/vnd.oci.image.layer.v1.tar+gzip`. Released `sbx` clients match on
+that media type strictly, so an artifact pushed from a dev build fails to
+resolve for every consumer:
+
+```
+ERROR: resolve kits: kit "oci://...": no v2 kit layer found in manifest
+       (expected media type application/vnd.oci.image.layer.v1.tar+gzip)
+```
+
+The push itself reports success, so the breakage only surfaces on the consumer
+side. Check before publishing - a `-<n>-g<sha>` suffix means a dev build:
+
+```console
+sbx version
+# v0.39.0                        <- release, safe to publish
+# v0.39.0-rc1-383-g9a702c7a7     <- dev build, do NOT publish
+```
+
+`scripts/publish.sh` verifies the layer media type after pushing and fails if
+the artifact came out wrong.
+
 ## Currently published
 
-- `docker.io/ajeetraina777/gitguardian-kit:latest`
-- digest: `sha256:c09c8d8dc2f71c702528d6838e02eace9ba5437355fb76a29cf4fb7afa2b4056`
+- `docker.io/ajeetraina777/gitguardian-kit`
+- digest: `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
+  (also tagged `:v039`; pushed from `sbx` v0.39.0 and verified to resolve)
+
+> **Note:** the `:latest` tag currently points at
+> `sha256:f37d16488cef8b25aea280fe62e2f360b6c09ac0a83677c0b46b88b567b6acd3`,
+> which was pushed from a dev build and **cannot be resolved** by released
+> `sbx`. Re-push `:latest` from a release build to fix the tag. Until then,
+> ignore `:latest` and pin the digest above.
 
 Re-run the publish step and update this digest whenever `spec.yaml` changes.
+Every push rewrites the `org.opencontainers.image.created` annotation, so the
+digest changes on each push even when `spec.yaml` is untouched.
