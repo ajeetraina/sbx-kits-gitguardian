@@ -127,6 +127,22 @@ host to **both** `permissions.network.allow` and the credential's
 `apiKey.inject[].domain` in `spec.yaml` (fork the kit) - the proxy only injects
 into domains the kit declares.
 
+### Multiple workspaces
+
+Docker Sandboxes support multiple workspaces, not just the single . All you need to do is to pass extra directory paths as additional arguments to sbx run, and each appears inside the sandbox at its absolute host path. So you can give ggshield a much broader scope to scan.
+
+```
+# Multiple projects, some read-only
+sbx run claude --kit "oci://.../gitguardian-kit@sha256:..." \
+  ~/project-a ~/shared-libs:ro ~/docs:ro
+```
+
+Then inside the sandbox you can scan across all of them, e.g.:
+
+```
+ggshield secret scan path -r ~/project-a ~/shared-libs ~/docs
+```
+
 ## Version pinning
 
 The install command pins `GGSHIELD_VERSION=1.53.0` and a per-arch `SHA256`
