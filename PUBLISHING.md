@@ -85,10 +85,14 @@ the artifact came out wrong.
 ## Currently published
 
 - `docker.io/ajeetraina777/gitguardian-kit`
-- digest: `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
-- tags: `:latest`, `:v039` - both point at the digest above
+- digest: `sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
+- tags: `:latest` points at the digest above (adds the global ggshield
+  pre-commit + pre-push git hooks). `:v039` still points at the previous,
+  pre-hooks digest `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
+  - retag it (see below) if you want `:v039` to include hook enforcement.
 
-Pushed from `sbx` v0.39.0 and confirmed to resolve (`✓ configuration resolved`).
+Pushed from `sbx` v0.39.0 (release build) and verified to carry a
+`application/vnd.oci.image.layer.v1.tar+gzip` kit layer.
 
 Re-run the publish step and update this digest whenever `spec.yaml` changes.
 Every push rewrites the `org.opencontainers.image.created` annotation, so the
@@ -103,7 +107,7 @@ and no blob upload is needed (the config and layer are already in the repo).
 
 ```console
 REPO=ajeetraina777/gitguardian-kit
-DIG=sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0
+DIG=sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd
 TOK=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull,push" \
       | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])')
 
