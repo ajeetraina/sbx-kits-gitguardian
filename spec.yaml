@@ -117,17 +117,27 @@ setup:
       user: "0"
       description: "Install ggshield v1.53.0, version+digest pinned"
 
-    # Install ggshield as a GLOBAL Claude Code hook. Unlike a git pre-commit
-    # hook, this fires inside the agent's own tool loop, so it scans the content
-    # the agent produces before it lands - putting the secret scan directly on
-    # the agent's authorized output path, which is exactly the surface this
-    # sandbox exists to protect. Global mode installs into the agent user's
-    # Claude Code settings so it applies across every session/repo, not just the
-    # workspace that exists at build time. Runs as the agent user (no
-    # `user: "0"`) so the hook config lands in the agent's HOME, where Claude
-    # Code reads it. --force makes the step idempotent across re-runs.
+    # Install ggshield as a Claude Code AI hook. Unlike a git pre-commit hook,
+    # this fires inside the agent's own tool loop (PreToolUse/PostToolUse/
+    # UserPromptSubmit in ~/.claude/settings.json), so it scans the content the
+    # agent produces - putting the secret scan directly on the agent's
+    # authorized output path, which is exactly the surface this sandbox exists
+    # to protect.
+    #
+    # `machine setup` is the current, non-deprecated entrypoint (`ggshield
+    # install -t claude-code` still works but prints a deprecation warning). We
+    # scope it to the AI hook only: --no-git-hooks (the kit deliberately does
+    # not gate git; see history) and --no-honeytokens (the scan-scoped token
+    # can't plant one, and a honeytoken isn't this kit's job). It is idempotent
+    # - re-runs add only what's missing.
+    #
+    # MUST run as the agent user (uid 1000), NOT root: setup.install defaults to
+    # user "0", which would write the hook to /root/.claude/settings.json where
+    # the agent (HOME=/home/agent) never reads it. Verified in-sandbox with
+    # `ggshield machine doctor`.
     - command: |
         set -euo pipefail
-        ggshield install --mode global --hook-type claude-code --force
-        echo "ggshield claude-code hook installed (global)"
-      description: "Install ggshield as a global Claude Code AI-assistant hook"
+        ggshield machine setup --agent claude-code --no-git-hooks --no-honeytokens
+        echo "ggshield AI hook installed at $HOME/.claude/settings.json"
+      user: "1000"
+      description: "Install ggshield as a Claude Code AI hook (agent user)"
