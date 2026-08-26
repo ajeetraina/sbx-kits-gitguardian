@@ -51,7 +51,18 @@ agentInstructions:
     through the sandbox proxy - `GITGUARDIAN_API_KEY` is a proxy-managed
     placeholder inside the container, never the real key.
 
-    Use it to catch hardcoded secrets before they get committed:
+    ### Automatic enforcement (Claude Code hook)
+
+    `ggshield` is installed as a GLOBAL Claude Code hook, so your own actions
+    are scanned for secrets automatically - you do not need to remember to scan
+    manually. If the hook BLOCKS an action, a real secret was detected. Do NOT
+    retry or try to bypass it. Instead: locate the flagged secret, remove it
+    from the code, and tell the user it must be rotated. Only proceed once the
+    secret is gone.
+
+    ### Manual scans
+
+    Use these to catch hardcoded secrets on demand:
 
     - `ggshield secret scan path -r .` - recursively scan the workspace files.
     - `ggshield secret scan repo .` - scan full git history + working tree
@@ -105,3 +116,18 @@ setup:
         ggshield --version
       user: "0"
       description: "Install ggshield v1.53.0, version+digest pinned"
+
+    # Install ggshield as a GLOBAL Claude Code hook. Unlike a git pre-commit
+    # hook, this fires inside the agent's own tool loop, so it scans the content
+    # the agent produces before it lands - putting the secret scan directly on
+    # the agent's authorized output path, which is exactly the surface this
+    # sandbox exists to protect. Global mode installs into the agent user's
+    # Claude Code settings so it applies across every session/repo, not just the
+    # workspace that exists at build time. Runs as the agent user (no
+    # `user: "0"`) so the hook config lands in the agent's HOME, where Claude
+    # Code reads it. --force makes the step idempotent across re-runs.
+    - command: |
+        set -euo pipefail
+        ggshield install --mode global --hook-type claude-code --force
+        echo "ggshield claude-code hook installed (global)"
+      description: "Install ggshield as a global Claude Code AI-assistant hook"

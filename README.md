@@ -18,6 +18,13 @@ microVM: your `~/.aws` / `~/.ssh` / `~/.docker/config.json` are not mounted, and
 the GitGuardian API key is held on the host and injected by the proxy only on
 outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
+The kit doesn't just *offer* scanning - it **enforces** it. `ggshield` is
+installed as a global Claude Code hook at sandbox creation, so the agent's own
+actions are scanned for secrets automatically. That turns secret scanning from
+advice the agent might skip into a deterministic gate sitting directly on the
+agent's authorized output path (see
+[Automatic enforcement](#automatic-enforcement-claude-code-hook)).
+
 ## Architecture
 
 ![GitGuardian kit architecture](docs/architecture.png)
@@ -56,6 +63,32 @@ agent@claude-project:~/project$ ggshield secret scan repo .      # full git hist
 
 `scan path -r .` scans the current files; `scan repo .` also walks the commit
 history, so it catches secrets that were committed and later removed.
+
+## Automatic enforcement (Claude Code hook)
+
+The manual commands above are the *escape hatch*, not the primary control. At
+sandbox creation the kit installs `ggshield` as a **global** Claude Code hook:
+
+```console
+ggshield install --mode global --hook-type claude-code --force
+```
+
+`ggshield` supports AI-assistant hook types (`claude-code`, `codex`, `copilot`,
+`cursor`, `vscode`) in addition to the classic git `pre-commit` / `pre-push`
+hooks. This kit uses the `claude-code` hook because the thing running in the
+sandbox is a Claude Code agent: the hook fires inside the agent's own tool loop
+and scans the content the agent produces, rather than waiting for a `git commit`
+that the agent could skip or bypass with `--no-verify`. Global mode installs the
+hook into the agent user's Claude Code settings, so it applies across every
+session - not just the workspace that existed at build time.
+
+This is deliberately the strongest surface the kit has: the sandbox already
+isolates the agent's filesystem and forces egress through the proxy, and putting
+a deterministic scan on the agent's output path means a hardcoded secret is
+caught by the tooling even when the agent forgets - or declines - to scan on its
+own. A blocked action is a signal to remove and rotate the secret, **not** to
+retry or bypass the hook; the bundled agent instructions tell the agent exactly
+that.
 
 ## Credentials
 
