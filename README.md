@@ -19,11 +19,11 @@ the GitGuardian API key is held on the host and injected by the proxy only on
 outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
 The kit doesn't just *offer* scanning - it **enforces** it. `ggshield` is
-installed as a global Claude Code hook at sandbox creation, so the agent's own
-actions are scanned for secrets automatically. That turns secret scanning from
-advice the agent might skip into a deterministic gate sitting directly on the
-agent's authorized output path (see
-[Automatic enforcement](#automatic-enforcement-claude-code-hook)).
+installed as the coding agent's own **AI hook** at sandbox creation (Claude
+Code, Codex, Copilot, or Cursor), so the agent's own actions are scanned for
+secrets automatically. That turns secret scanning from advice the agent might
+skip into a deterministic gate sitting directly on the agent's authorized output
+path (see [Automatic enforcement](#automatic-enforcement-ai-hook)).
 
 ## Architecture
 
@@ -88,22 +88,22 @@ agent@claude-project:~/project$ ggshield secret scan repo .      # full git hist
 `scan path -r .` scans the current files; `scan repo .` also walks the commit
 history, so it catches secrets that were committed and later removed.
 
-## Automatic enforcement (Claude Code hook)
+## Automatic enforcement (AI hook)
 
 The manual commands above are the *escape hatch*, not the primary control. At
-sandbox creation the kit installs `ggshield` as a Claude Code **AI hook**, run
-as the agent user so it lands in the agent's own `~/.claude/settings.json`:
+sandbox creation the kit installs `ggshield` as the coding agent's **AI hook**,
+run as the agent user so it lands in the agent's own config (e.g.
+`~/.claude/settings.json`, `~/.codex/hooks.json`):
 
 ```console
-ggshield machine setup --agent claude-code --no-git-hooks --no-honeytokens
+ggshield machine setup --agent <claude-code|codex|copilot|cursor> --no-git-hooks --no-honeytokens
 ```
 
 `ggshield machine setup` is the current entrypoint for AI-assistant hooks
 (`claude-code`, `codex`, `copilot`, `cursor`, `vscode`); the older
-`ggshield install --hook-type claude-code` still works but is deprecated. This
-kit uses the `claude-code` hook because the thing running in the sandbox is a
-Claude Code agent: it registers `PreToolUse` / `PostToolUse` /
-`UserPromptSubmit` hooks that run `ggshield secret scan ai-hook` inside the
+`ggshield install --hook-type <agent>` still works but is deprecated. Each
+kit tag targets one agent - the hook registers `PreToolUse` / `PostToolUse` /
+`UserPromptSubmit` handlers that run `ggshield secret scan ai-hook` inside the
 agent's own tool loop, scanning the content the agent produces rather than
 waiting for a `git commit` that the agent could skip or bypass with
 `--no-verify`. The kit scopes setup to the AI hook only (`--no-git-hooks`,
