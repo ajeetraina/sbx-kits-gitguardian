@@ -21,19 +21,41 @@ layers.
   # paste a Docker Hub access token as the password
   ```
 
+## One artifact per agent
+
+The kit wires `ggshield` in as a coding agent's **AI hook**, and every agent
+uses a different hook file, so there is one OCI artifact per agent. All the
+specs are generated from a single template - **edit `scripts/gen-kits.sh`, not
+the individual `spec.yaml` files** (they carry a "generated file" banner):
+
+```console
+./scripts/gen-kits.sh          # regenerate spec.yaml + kits/<agent>/spec.yaml
+./scripts/gen-kits.sh --check  # fail if any spec is stale (CI/pre-commit gate)
+```
+
+| Agent   | Spec source            | OCI repo                       |
+|---------|------------------------|--------------------------------|
+| claude  | `spec.yaml` (root)     | `gitguardian-kit`              |
+| codex   | `kits/codex/spec.yaml` | `gitguardian-kit-codex`        |
+| copilot | `kits/copilot/spec.yaml` | `gitguardian-kit-copilot`    |
+| cursor  | `kits/cursor/spec.yaml` | `gitguardian-kit-cursor`      |
+
 ## Publish
 
 ```console
-./scripts/publish.sh                    # docker.io/ajeetraina777/gitguardian-kit:latest
-./scripts/publish.sh <namespace>        # docker.io/<namespace>/gitguardian-kit:latest
-./scripts/publish.sh <namespace> <tag>
+./scripts/publish.sh                     # publish ALL agents to docker.io/ajeetraina777/...
+./scripts/publish.sh <namespace>         # publish ALL agents under <namespace>
+./scripts/publish.sh <namespace> <agent> # publish just one (claude|codex|copilot|cursor)
 ```
 
-or directly:
+`publish.sh` runs `gen-kits.sh --check` first (refuses to publish stale specs),
+then validates, pushes, and verifies the OCI layer media type for each agent.
+
+Or push one directly:
 
 ```console
-sbx kit validate ./
-sbx kit push ./ docker.io/ajeetraina777/gitguardian-kit:latest
+sbx kit validate ./kits/codex
+sbx kit push ./kits/codex docker.io/ajeetraina777/gitguardian-kit-codex:latest
 ```
 
 The `-kit` suffix in the repo name follows the Docker Sandboxes convention:
@@ -84,22 +106,30 @@ the artifact came out wrong.
 
 ## Currently published
 
-- `docker.io/ajeetraina777/gitguardian-kit`
-- digest: `sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57`
-- tags: `:latest` points at the digest above (installs the ggshield Claude Code
-  AI hook via `ggshield machine setup`, run as the agent user; no git hooks).
-  The previous `:latest` digest
-  `sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
-  added the now-reverted global git pre-commit + pre-push hooks, and
-  `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
-  predates hook enforcement entirely.
+All installed via `ggshield machine setup --agent <agent> --no-git-hooks
+--no-honeytokens`, run as the agent user (uid 1000; no git hooks):
+
+| Agent   | OCI repo                          | Digest |
+|---------|-----------------------------------|--------|
+| claude  | `docker.io/ajeetraina777/gitguardian-kit`         | `sha256:49e19c274226aef0e85f6b80aa95878ca7d2d1537ea4d48acf5c433557984184` |
+| codex   | `docker.io/ajeetraina777/gitguardian-kit-codex`   | `sha256:cdba24ef2fc85624ab5ef8a54d4ac7ac6464196aeba30751b9132ba36e90e4b7` |
+| copilot | `docker.io/ajeetraina777/gitguardian-kit-copilot` | `sha256:d1403fcd9c5f3040f19e1ee26b2250baf6c6119c764b4013fd9033ed81a68ebc` |
+| cursor  | `docker.io/ajeetraina777/gitguardian-kit-cursor`  | `sha256:cb0acd4d34869bd9c8d6dbd683899ca0ea9b6918a801e77fe025ad28770d65fb` |
+
+Older `gitguardian-kit` (claude) digests, for reference:
+`sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57`
+(pre-multi-agent AI-hook build),
+`sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
+(now-reverted global git pre-commit + pre-push hooks), and
+`sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
+(predates hook enforcement entirely).
 
 Pushed from `sbx` v0.39.0 (release build) and verified to carry a
 `application/vnd.oci.image.layer.v1.tar+gzip` kit layer.
 
-Re-run the publish step and update this digest whenever `spec.yaml` changes.
+Re-run `./scripts/publish.sh` and update these digests whenever a spec changes.
 Every push rewrites the `org.opencontainers.image.created` annotation, so the
-digest changes on each push even when `spec.yaml` is untouched.
+digest changes on each push even when the spec is untouched.
 
 ## Retag without re-publishing
 

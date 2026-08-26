@@ -1,13 +1,46 @@
+#!/usr/bin/env bash
+# Generate the per-agent gitguardian kit specs from a single template.
+#
+# The kit is published as one OCI artifact per coding agent, but every spec is
+# byte-identical except for the ggshield AI-hook target. Rather than maintain
+# four near-duplicate spec.yaml files (which drift on every ggshield version
+# bump), this script is the single source of truth: edit the TEMPLATE below and
+# re-run to regenerate all of them.
+#
+#   ./scripts/gen-kits.sh          # write the specs
+#   ./scripts/gen-kits.sh --check  # fail if any spec is stale (for CI/pre-commit)
+#
+# Outputs:
+#   spec.yaml               -> claude  (root; the default artifact)
+#   kits/codex/spec.yaml    -> codex
+#   kits/copilot/spec.yaml  -> copilot
+#   kits/cursor/spec.yaml   -> cursor
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CHECK=0
+[ "${1:-}" = "--check" ] && CHECK=1
+
+# Per-agent table: OUT | KIT_NAME | DISPLAY | GG_AGENT (ggshield name) | HOOK_PATH
+AGENTS=(
+  "spec.yaml|gitguardian|Claude Code|claude-code|~/.claude/settings.json"
+  "kits/codex/spec.yaml|gitguardian-codex|Codex|codex|~/.codex/hooks.json"
+  "kits/copilot/spec.yaml|gitguardian-copilot|Copilot CLI|copilot|~/.copilot/hooks/hooks.json"
+  "kits/cursor/spec.yaml|gitguardian-cursor|Cursor|cursor|~/.cursor/hooks.json"
+)
+
+# TEMPLATE — literal (single-quoted heredoc); @@TOKENS@@ are substituted below.
+read -r -d '' TEMPLATE <<'EOF' || true
 schemaVersion: "2"
 kind: mixin
-name: gitguardian
-displayName: GitGuardian (ggshield) — Claude Code
-description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com and wires it as a Claude Code AI hook, so the agent's own actions are scanned for hardcoded secrets automatically - the real key never enters the sandbox.
+name: @@KIT_NAME@@
+displayName: GitGuardian (ggshield) — @@DISPLAY@@
+description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com and wires it as a @@DISPLAY@@ AI hook, so the agent's own actions are scanned for hardcoded secrets automatically - the real key never enters the sandbox.
 
 # ┌───────────────────────────────────────────────────────────────────────────┐
 # │ GENERATED FILE - do not edit by hand.                                       │
 # │ Source: scripts/gen-kits.sh (edit the TEMPLATE there, then re-run it).      │
-# │ This variant targets the Claude Code coding agent.                          │
+# │ This variant targets the @@DISPLAY@@ coding agent.                          │
 # └───────────────────────────────────────────────────────────────────────────┘
 
 permissions:
@@ -57,9 +90,9 @@ agentInstructions:
     through the sandbox proxy - `GITGUARDIAN_API_KEY` is a proxy-managed
     placeholder inside the container, never the real key.
 
-    ### Automatic enforcement (Claude Code hook)
+    ### Automatic enforcement (@@DISPLAY@@ hook)
 
-    `ggshield` is installed as a Claude Code AI hook (`~/.claude/settings.json`), so your
+    `ggshield` is installed as a @@DISPLAY@@ AI hook (`@@HOOK_PATH@@`), so your
     own actions are scanned for secrets automatically - you do not need to
     remember to scan manually. If the hook BLOCKS an action, a real secret was
     detected. Do NOT retry or try to bypass it. Instead: locate the flagged
@@ -122,7 +155,7 @@ setup:
       user: "0"
       description: "Install ggshield v1.53.0, version+digest pinned"
 
-    # Install ggshield as a Claude Code AI hook. Unlike a git pre-commit hook,
+    # Install ggshield as a @@DISPLAY@@ AI hook. Unlike a git pre-commit hook,
     # this fires inside the agent's own tool loop and scans the content the
     # agent produces - putting the secret scan directly on the agent's
     # authorized output path, which is exactly the surface this sandbox exists
@@ -141,7 +174,39 @@ setup:
     # `ggshield machine doctor`.
     - command: |
         set -euo pipefail
-        ggshield machine setup --agent claude-code --no-git-hooks --no-honeytokens
-        echo "ggshield AI hook installed (~/.claude/settings.json)"
+        ggshield machine setup --agent @@GG_AGENT@@ --no-git-hooks --no-honeytokens
+        echo "ggshield AI hook installed (@@HOOK_PATH@@)"
       user: "1000"
-      description: "Install ggshield as a Claude Code AI hook (agent user)"
+      description: "Install ggshield as a @@DISPLAY@@ AI hook (agent user)"
+EOF
+
+render() {
+  # $1=display $2=kit_name $3=gg_agent $4=hook_path
+  local out
+  out="$TEMPLATE"
+  out="${out//@@DISPLAY@@/$1}"
+  out="${out//@@KIT_NAME@@/$2}"
+  out="${out//@@GG_AGENT@@/$3}"
+  out="${out//@@HOOK_PATH@@/$4}"
+  printf '%s\n' "$out"
+}
+
+STALE=0
+for row in "${AGENTS[@]}"; do
+  IFS='|' read -r OUT KIT_NAME DISPLAY GG_AGENT HOOK_PATH <<<"$row"
+  DEST="$ROOT/$OUT"
+  CONTENT="$(render "$DISPLAY" "$KIT_NAME" "$GG_AGENT" "$HOOK_PATH")"
+  if [ "$CHECK" -eq 1 ]; then
+    if ! diff -q <(printf '%s' "$CONTENT") "$DEST" >/dev/null 2>&1; then
+      echo "STALE: $OUT (run ./scripts/gen-kits.sh)" >&2
+      STALE=1
+    fi
+  else
+    mkdir -p "$(dirname "$DEST")"
+    printf '%s' "$CONTENT" >"$DEST"
+    echo "wrote $OUT  (agent: $GG_AGENT, hook: $HOOK_PATH)"
+  fi
+done
+
+[ "$CHECK" -eq 1 ] && exit $STALE
+exit 0

@@ -1,13 +1,13 @@
 schemaVersion: "2"
 kind: mixin
-name: gitguardian
-displayName: GitGuardian (ggshield) — Claude Code
-description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com and wires it as a Claude Code AI hook, so the agent's own actions are scanned for hardcoded secrets automatically - the real key never enters the sandbox.
+name: gitguardian-cursor
+displayName: GitGuardian (ggshield) — Cursor
+description: Installs the GitGuardian CLI (ggshield) with proxy-injected API-key auth for api.gitguardian.com and wires it as a Cursor AI hook, so the agent's own actions are scanned for hardcoded secrets automatically - the real key never enters the sandbox.
 
 # ┌───────────────────────────────────────────────────────────────────────────┐
 # │ GENERATED FILE - do not edit by hand.                                       │
 # │ Source: scripts/gen-kits.sh (edit the TEMPLATE there, then re-run it).      │
-# │ This variant targets the Claude Code coding agent.                          │
+# │ This variant targets the Cursor coding agent.                          │
 # └───────────────────────────────────────────────────────────────────────────┘
 
 permissions:
@@ -57,9 +57,9 @@ agentInstructions:
     through the sandbox proxy - `GITGUARDIAN_API_KEY` is a proxy-managed
     placeholder inside the container, never the real key.
 
-    ### Automatic enforcement (Claude Code hook)
+    ### Automatic enforcement (Cursor hook)
 
-    `ggshield` is installed as a Claude Code AI hook (`~/.claude/settings.json`), so your
+    `ggshield` is installed as a Cursor AI hook (`~/.cursor/hooks.json`), so your
     own actions are scanned for secrets automatically - you do not need to
     remember to scan manually. If the hook BLOCKS an action, a real secret was
     detected. Do NOT retry or try to bypass it. Instead: locate the flagged
@@ -122,7 +122,7 @@ setup:
       user: "0"
       description: "Install ggshield v1.53.0, version+digest pinned"
 
-    # Install ggshield as a Claude Code AI hook. Unlike a git pre-commit hook,
+    # Install ggshield as a Cursor AI hook. Unlike a git pre-commit hook,
     # this fires inside the agent's own tool loop and scans the content the
     # agent produces - putting the secret scan directly on the agent's
     # authorized output path, which is exactly the surface this sandbox exists
@@ -141,7 +141,7 @@ setup:
     # `ggshield machine doctor`.
     - command: |
         set -euo pipefail
-        ggshield machine setup --agent claude-code --no-git-hooks --no-honeytokens
-        echo "ggshield AI hook installed (~/.claude/settings.json)"
+        ggshield machine setup --agent cursor --no-git-hooks --no-honeytokens
+        echo "ggshield AI hook installed (~/.cursor/hooks.json)"
       user: "1000"
-      description: "Install ggshield as a Claude Code AI hook (agent user)"
+      description: "Install ggshield as a Cursor AI hook (agent user)"

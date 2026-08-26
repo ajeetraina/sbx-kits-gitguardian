@@ -38,20 +38,40 @@ environment, shell history, or `ps` output.
 
 ## Usage
 
-This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
-(`claude` shown here) and add the kit:
+This is a mixin, so it layers onto a base agent with `--kit`. The kit wires
+`ggshield` in as that agent's **AI hook**, so there is one artifact per coding
+agent - pick the one that matches the agent you run:
+
+| Agent     | OCI artifact                                | Hook file                     |
+|-----------|---------------------------------------------|-------------------------------|
+| `claude`  | `docker.io/ajeetraina777/gitguardian-kit`         | `~/.claude/settings.json`       |
+| `codex`   | `docker.io/ajeetraina777/gitguardian-kit-codex`   | `~/.codex/hooks.json`           |
+| `copilot` | `docker.io/ajeetraina777/gitguardian-kit-copilot` | `~/.copilot/hooks/hooks.json`   |
+| `cursor`  | `docker.io/ajeetraina777/gitguardian-kit-cursor`  | `~/.cursor/hooks.json`          |
+
+> `ggshield`'s AI-hook support covers `claude-code`, `codex`, `copilot`, and
+> `cursor`. Other sbx agents (`gemini`, `droid`, `kiro`, `opencode`) have no
+> ggshield AI hook - layer the kit onto them for the `ggshield` CLI + manual
+> scanning, but there is no automatic enforcement hook.
 
 ```console
 # From the published OCI artifact on Docker Hub (pin by digest - OCI refs
 # require a digest, tags are rejected):
-sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57" .
+sbx run claude  --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:49e19c274226aef0e85f6b80aa95878ca7d2d1537ea4d48acf5c433557984184" .
+sbx run codex   --kit "oci://docker.io/ajeetraina777/gitguardian-kit-codex@sha256:cdba24ef2fc85624ab5ef8a54d4ac7ac6464196aeba30751b9132ba36e90e4b7" .
+sbx run copilot --kit "oci://docker.io/ajeetraina777/gitguardian-kit-copilot@sha256:d1403fcd9c5f3040f19e1ee26b2250baf6c6119c764b4013fd9033ed81a68ebc" .
+sbx run cursor  --kit "oci://docker.io/ajeetraina777/gitguardian-kit-cursor@sha256:cb0acd4d34869bd9c8d6dbd683899ca0ea9b6918a801e77fe025ad28770d65fb" .
 
-# From this git repo:
+# From this git repo (root = claude; other agents live under kits/<agent>):
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .
 
 # From a local clone:
 sbx run claude --kit ./ .
+sbx run codex  --kit ./kits/codex .
 ```
+
+The per-agent specs are generated from a single template
+(`scripts/gen-kits.sh`) so they never drift; see [Publishing](PUBLISHING.md).
 
 Then, inside the sandbox:
 
