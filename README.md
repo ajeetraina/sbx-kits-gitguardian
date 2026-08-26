@@ -44,7 +44,7 @@ This is a mixin, so it layers onto a base agent with `--kit`. Pick any agent
 ```console
 # From the published OCI artifact on Docker Hub (pin by digest - OCI refs
 # require a digest, tags are rejected):
-sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd" .
+sbx run claude --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57" .
 
 # From this git repo:
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .

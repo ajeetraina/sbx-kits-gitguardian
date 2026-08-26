@@ -85,11 +85,14 @@ the artifact came out wrong.
 ## Currently published
 
 - `docker.io/ajeetraina777/gitguardian-kit`
-- digest: `sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
-- tags: `:latest` points at the digest above (adds the global ggshield
-  pre-commit + pre-push git hooks). `:v039` still points at the previous,
-  pre-hooks digest `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
-  - retag it (see below) if you want `:v039` to include hook enforcement.
+- digest: `sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57`
+- tags: `:latest` points at the digest above (installs the ggshield Claude Code
+  AI hook via `ggshield machine setup`, run as the agent user; no git hooks).
+  The previous `:latest` digest
+  `sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
+  added the now-reverted global git pre-commit + pre-push hooks, and
+  `sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
+  predates hook enforcement entirely.
 
 Pushed from `sbx` v0.39.0 (release build) and verified to carry a
 `application/vnd.oci.image.layer.v1.tar+gzip` kit layer.
