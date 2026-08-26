@@ -39,15 +39,19 @@ environment, shell history, or `ps` output.
 ## Usage
 
 This is a mixin, so it layers onto a base agent with `--kit`. The kit wires
-`ggshield` in as that agent's **AI hook**, so there is one artifact per coding
-agent - pick the one that matches the agent you run:
+`ggshield` in as that agent's **AI hook**. It ships as a **single Docker Hub
+repo, `gitguardian-kit`, with one tag per coding agent** - the tag is just a
+human-facing label (you pin by digest to consume, since sbx rejects OCI tags):
 
-| Agent     | OCI artifact                                | Hook file                     |
-|-----------|---------------------------------------------|-------------------------------|
-| `claude`  | `docker.io/ajeetraina777/gitguardian-kit`         | `~/.claude/settings.json`       |
-| `codex`   | `docker.io/ajeetraina777/gitguardian-kit-codex`   | `~/.codex/hooks.json`           |
-| `copilot` | `docker.io/ajeetraina777/gitguardian-kit-copilot` | `~/.copilot/hooks/hooks.json`   |
-| `cursor`  | `docker.io/ajeetraina777/gitguardian-kit-cursor`  | `~/.cursor/hooks.json`          |
+| Agent     | Tag                        | Digest to pin                    | Hook file                   |
+|-----------|----------------------------|----------------------------------|-----------------------------|
+| `claude`  | `gitguardian-kit:claude`   | `sha256:8a3ad306…` | `~/.claude/settings.json`     |
+| `codex`   | `gitguardian-kit:codex`    | `sha256:532a1a32…` | `~/.codex/hooks.json`         |
+| `copilot` | `gitguardian-kit:copilot`  | `sha256:cd38bfb3…` | `~/.copilot/hooks/hooks.json` |
+| `cursor`  | `gitguardian-kit:cursor`   | `sha256:f92a9329…` | `~/.cursor/hooks.json`        |
+
+`:latest` is an alias of the claude tag. Full digests are in
+[PUBLISHING.md](PUBLISHING.md#currently-published).
 
 > `ggshield`'s AI-hook support covers `claude-code`, `codex`, `copilot`, and
 > `cursor`. Other sbx agents (`gemini`, `droid`, `kiro`, `opencode`) have no
@@ -56,11 +60,11 @@ agent - pick the one that matches the agent you run:
 
 ```console
 # From the published OCI artifact on Docker Hub (pin by digest - OCI refs
-# require a digest, tags are rejected):
-sbx run claude  --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:49e19c274226aef0e85f6b80aa95878ca7d2d1537ea4d48acf5c433557984184" .
-sbx run codex   --kit "oci://docker.io/ajeetraina777/gitguardian-kit-codex@sha256:cdba24ef2fc85624ab5ef8a54d4ac7ac6464196aeba30751b9132ba36e90e4b7" .
-sbx run copilot --kit "oci://docker.io/ajeetraina777/gitguardian-kit-copilot@sha256:d1403fcd9c5f3040f19e1ee26b2250baf6c6119c764b4013fd9033ed81a68ebc" .
-sbx run cursor  --kit "oci://docker.io/ajeetraina777/gitguardian-kit-cursor@sha256:cb0acd4d34869bd9c8d6dbd683899ca0ea9b6918a801e77fe025ad28770d65fb" .
+# require a digest, tags are rejected). One repo, one digest per agent:
+sbx run claude  --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:8a3ad30666e6e651e4fff3c56a16e715bff4ac5356512c7dcbaa47f97988e8c4" .
+sbx run codex   --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:532a1a328fbc01a996e2e17f8053f297fd72a11026276f6e4021cc33a7ea0782" .
+sbx run copilot --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:cd38bfb3c9affd4d723fe4d97c0a6e08b427645a17efcc3c43dbb59ca21d3e02" .
+sbx run cursor  --kit "oci://docker.io/ajeetraina777/gitguardian-kit@sha256:f92a932951174cbc1378a22fa56d0b779fc6e136eff8f42fc6c094fc83cd7cbd" .
 
 # From this git repo (root = claude; other agents live under kits/<agent>):
 sbx run claude --kit "git+https://github.com/ajeetraina/sbx-kits-gitguardian.git" .

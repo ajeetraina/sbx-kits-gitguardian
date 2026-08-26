@@ -21,41 +21,47 @@ layers.
   # paste a Docker Hub access token as the password
   ```
 
-## One artifact per agent
+## One repo, one tag per agent
 
 The kit wires `ggshield` in as a coding agent's **AI hook**, and every agent
-uses a different hook file, so there is one OCI artifact per agent. All the
-specs are generated from a single template - **edit `scripts/gen-kits.sh`, not
-the individual `spec.yaml` files** (they carry a "generated file" banner):
+uses a different hook file. Rather than a repo per agent, everything lives in a
+single repo (`gitguardian-kit`) with **one tag per agent**. Consumers pin by
+digest (sbx rejects OCI tags at consume time), so the tag is only a label that
+points at the digest to copy.
+
+All the specs are generated from a single template - **edit
+`scripts/gen-kits.sh`, not the individual `spec.yaml` files** (they carry a
+"generated file" banner):
 
 ```console
 ./scripts/gen-kits.sh          # regenerate spec.yaml + kits/<agent>/spec.yaml
 ./scripts/gen-kits.sh --check  # fail if any spec is stale (CI/pre-commit gate)
 ```
 
-| Agent   | Spec source            | OCI repo                       |
-|---------|------------------------|--------------------------------|
-| claude  | `spec.yaml` (root)     | `gitguardian-kit`              |
-| codex   | `kits/codex/spec.yaml` | `gitguardian-kit-codex`        |
-| copilot | `kits/copilot/spec.yaml` | `gitguardian-kit-copilot`    |
-| cursor  | `kits/cursor/spec.yaml` | `gitguardian-kit-cursor`      |
+| Agent   | Spec source              | Published tag              |
+|---------|--------------------------|----------------------------|
+| claude  | `spec.yaml` (root)       | `gitguardian-kit:claude` (+ `:latest`) |
+| codex   | `kits/codex/spec.yaml`   | `gitguardian-kit:codex`    |
+| copilot | `kits/copilot/spec.yaml` | `gitguardian-kit:copilot`  |
+| cursor  | `kits/cursor/spec.yaml`  | `gitguardian-kit:cursor`   |
 
 ## Publish
 
 ```console
-./scripts/publish.sh                     # publish ALL agents to docker.io/ajeetraina777/...
-./scripts/publish.sh <namespace>         # publish ALL agents under <namespace>
-./scripts/publish.sh <namespace> <agent> # publish just one (claude|codex|copilot|cursor)
+./scripts/publish.sh                     # publish ALL agent tags to docker.io/ajeetraina777/gitguardian-kit
+./scripts/publish.sh <namespace>         # publish ALL agent tags under <namespace>
+./scripts/publish.sh <namespace> <agent> # publish just one tag (claude|codex|copilot|cursor)
 ```
 
 `publish.sh` runs `gen-kits.sh --check` first (refuses to publish stale specs),
-then validates, pushes, and verifies the OCI layer media type for each agent.
+then validates, pushes, and verifies the OCI layer media type for each tag, and
+finally publishes claude to `:latest` as the default.
 
-Or push one directly:
+Or push one tag directly:
 
 ```console
 sbx kit validate ./kits/codex
-sbx kit push ./kits/codex docker.io/ajeetraina777/gitguardian-kit-codex:latest
+sbx kit push ./kits/codex docker.io/ajeetraina777/gitguardian-kit:codex
 ```
 
 The `-kit` suffix in the repo name follows the Docker Sandboxes convention:
@@ -106,23 +112,22 @@ the artifact came out wrong.
 
 ## Currently published
 
-All installed via `ggshield machine setup --agent <agent> --no-git-hooks
---no-honeytokens`, run as the agent user (uid 1000; no git hooks):
+Repo `docker.io/ajeetraina777/gitguardian-kit`, one tag per agent. All installed
+via `ggshield machine setup --agent <agent> --no-git-hooks --no-honeytokens`,
+run as the agent user (uid 1000; no git hooks):
 
-| Agent   | OCI repo                          | Digest |
-|---------|-----------------------------------|--------|
-| claude  | `docker.io/ajeetraina777/gitguardian-kit`         | `sha256:49e19c274226aef0e85f6b80aa95878ca7d2d1537ea4d48acf5c433557984184` |
-| codex   | `docker.io/ajeetraina777/gitguardian-kit-codex`   | `sha256:cdba24ef2fc85624ab5ef8a54d4ac7ac6464196aeba30751b9132ba36e90e4b7` |
-| copilot | `docker.io/ajeetraina777/gitguardian-kit-copilot` | `sha256:d1403fcd9c5f3040f19e1ee26b2250baf6c6119c764b4013fd9033ed81a68ebc` |
-| cursor  | `docker.io/ajeetraina777/gitguardian-kit-cursor`  | `sha256:cb0acd4d34869bd9c8d6dbd683899ca0ea9b6918a801e77fe025ad28770d65fb` |
+| Tag        | Agent   | Digest to pin |
+|------------|---------|---------------|
+| `:claude`  | claude  | `sha256:8a3ad30666e6e651e4fff3c56a16e715bff4ac5356512c7dcbaa47f97988e8c4` |
+| `:codex`   | codex   | `sha256:532a1a328fbc01a996e2e17f8053f297fd72a11026276f6e4021cc33a7ea0782` |
+| `:copilot` | copilot | `sha256:cd38bfb3c9affd4d723fe4d97c0a6e08b427645a17efcc3c43dbb59ca21d3e02` |
+| `:cursor`  | cursor  | `sha256:f92a932951174cbc1378a22fa56d0b779fc6e136eff8f42fc6c094fc83cd7cbd` |
+| `:latest`  | claude  | `sha256:5b01ab79c69988ae87ecfccfc108f25193a6c14385122b8e6db4bc0005f7dfed` (same spec as `:claude`, distinct digest) |
 
-Older `gitguardian-kit` (claude) digests, for reference:
-`sha256:1c87b514e88f4b06f28bb84dc8d328e02786cdf9c5f9fc774c97833af48caa57`
-(pre-multi-agent AI-hook build),
-`sha256:e276e93df0c80555ab83b90ce1e93c0b4d4ce78e12b34572de393fd9b9fd20bd`
-(now-reverted global git pre-commit + pre-push hooks), and
-`sha256:24e7704eee30619a50f6dbfe34ace33772d450c564562283e80ab5b5939b25a0`
-(predates hook enforcement entirely).
+Superseded (do not use): the short-lived per-agent repos
+`gitguardian-kit-codex` / `-copilot` / `-cursor`, and older `gitguardian-kit`
+digests `sha256:1c87b514…` (single-agent AI-hook build), `sha256:e276e93d…`
+(now-reverted git hooks), `sha256:24e7704e…` (pre-enforcement).
 
 Pushed from `sbx` v0.39.0 (release build) and verified to carry a
 `application/vnd.oci.image.layer.v1.tar+gzip` kit layer.
