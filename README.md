@@ -18,13 +18,6 @@ microVM: your `~/.aws` / `~/.ssh` / `~/.docker/config.json` are not mounted, and
 the GitGuardian API key is held on the host and injected by the proxy only on
 outbound calls to `api.gitguardian.com` - the container sees a placeholder.
 
-The kit doesn't just *offer* scanning - it **enforces** it. `ggshield` is
-installed as a global `pre-commit` + `pre-push` git hook at sandbox creation, so
-every commit and every push the agent makes is scanned automatically. That
-turns secret scanning from advice the agent might skip into a deterministic gate
-sitting directly on the agent's authorized output path (see
-[Automatic enforcement](#automatic-enforcement-git-hooks)).
-
 ## Architecture
 
 ![GitGuardian kit architecture](docs/architecture.png)
@@ -63,31 +56,6 @@ agent@claude-project:~/project$ ggshield secret scan repo .      # full git hist
 
 `scan path -r .` scans the current files; `scan repo .` also walks the commit
 history, so it catches secrets that were committed and later removed.
-
-## Automatic enforcement (git hooks)
-
-The manual commands above are the *escape hatch*, not the primary control. At
-sandbox creation the kit installs `ggshield` as a **global** git hook for both
-`pre-commit` and `pre-push`:
-
-```console
-ggshield install --mode global --hook-type pre-commit --force
-ggshield install --mode global --hook-type pre-push  --force
-```
-
-Global mode sets the agent user's `core.hooksPath`, so the hooks fire in **every
-repo the agent touches** - including repos it `git init`s mid-session - not just
-the workspace that existed at creation time. Every commit is scanned before it
-becomes a commit object (`pre-commit`), and every push is scanned before
-anything leaves the microVM (`pre-push`).
-
-This is deliberately the strongest surface the kit has: the sandbox already
-isolates the agent's filesystem and forces egress through the proxy, and the one
-thing the agent is *authorized* to produce is commits. Putting a deterministic
-scan directly on that path means a hardcoded secret is caught by the tooling
-even when the agent forgets - or declines - to scan on its own. A blocked commit
-is a signal to remove and rotate the secret, **not** to retry or pass
-`--no-verify`; the bundled agent instructions tell the agent exactly that.
 
 ## Credentials
 

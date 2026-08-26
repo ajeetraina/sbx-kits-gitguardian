@@ -51,32 +51,20 @@ agentInstructions:
     through the sandbox proxy - `GITGUARDIAN_API_KEY` is a proxy-managed
     placeholder inside the container, never the real key.
 
-    ### Automatic enforcement (git hooks)
-
-    `ggshield` is installed as a GLOBAL git hook for both `pre-commit` and
-    `pre-push`, so every commit and every push you make is scanned
-    automatically - in every repo, including ones you `git init` yourself. You
-    do not need to remember to scan manually before committing; the hook
-    enforces it.
-
-    If a commit or push is BLOCKED by the hook, a real secret was detected. Do
-    NOT retry the commit, and do NOT bypass the hook (`git commit --no-verify`,
-    `git push --no-verify`) or otherwise work around it. Instead: locate the
-    flagged secret, remove it from the code, and tell the user it must be
-    rotated. Only re-commit once the secret is gone.
-
-    ### Manual scans
+    Use it to catch hardcoded secrets before they get committed:
 
     - `ggshield secret scan path -r .` - recursively scan the workspace files.
     - `ggshield secret scan repo .` - scan full git history + working tree
       (catches secrets that were committed and later removed).
+    - `ggshield secret scan pre-commit` - scan staged changes (pre-commit hook).
     - `ggshield secret scan ci` - scan the current commit range in CI.
     - `ggshield api-status` / `ggshield quota` - verify auth and remaining quota.
 
-    If a real secret is found, remove it and rotate it - do not commit it. For
-    the EU workspace or a self-hosted instance, the operator must set
-    `GITGUARDIAN_INSTANCE` and add that host to the kit's network allowlist and
-    credential inject block.
+    Run a scan after generating or editing code that might contain credentials,
+    and before any `git commit`. If a real secret is found, remove it and rotate
+    it - do not commit it. For the EU workspace or a self-hosted instance, the
+    operator must set `GITGUARDIAN_INSTANCE` and add that host to the kit's
+    network allowlist and credential inject block.
 
 setup:
   install:
@@ -117,20 +105,3 @@ setup:
         ggshield --version
       user: "0"
       description: "Install ggshield v1.53.0, version+digest pinned"
-
-    # Install ggshield as GLOBAL git hooks (pre-commit + pre-push) for the agent
-    # user. This is the enforcement layer: instead of trusting the agent to
-    # remember to scan, every commit and every push it makes is scanned
-    # automatically. Global mode sets core.hooksPath, so it covers EVERY repo
-    # the agent touches - including ones it `git init`s mid-session - not just
-    # the repo that existed at sandbox creation. pre-commit is the earliest gate
-    # (keeps history clean); pre-push is the last line before anything leaves
-    # the microVM. Runs as the agent user (no `user: "0"`) so the global git
-    # config lands in the agent's HOME, where the agent's own git commands read
-    # it. --force makes the step idempotent across re-runs.
-    - command: |
-        set -euo pipefail
-        ggshield install --mode global --hook-type pre-commit --force
-        ggshield install --mode global --hook-type pre-push --force
-        echo "ggshield hooks active via core.hooksPath=$(git config --global --get core.hooksPath)"
-      description: "Install ggshield global pre-commit + pre-push git hooks"
